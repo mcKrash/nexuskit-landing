@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NexusKit — Ship your SaaS in minutes</title>
+
+<meta name="description" content="Generate a complete, production-ready Next.js SaaS app in minutes. Auth, payments, database, email, admin dashboard — one command, zero config headaches.">
+<meta name="keywords" content="saas boilerplate, next.js starter, saas cli, nextauth, stripe, prisma, tailwind, scaffolding">
+<meta name="author" content="mcKrash">
+<meta name="robots" content="index, follow">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="NexusKit — Ship your SaaS in minutes">
+<meta property="og:description" content="One command scaffolds auth, payments, database, email, admin, and deployment. Stop wasting weeks on boilerplate.">
+<meta property="og:url" content="https://www.npmjs.com/package/nexuskit-cli">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="NexusKit — Ship your SaaS in minutes">
+<meta name="twitter:description" content="One command scaffolds a complete production-ready SaaS. Auth, payments, DB, email — all wired up.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0a0a0a; --bg2: #111111; --bg3: #1a1a1a;
+  --border: #222222; --border2: #2a2a2a;
+  --text: #f0f0f0; --muted: #666666; --muted2: #444444;
+  --green: #00ff88; --green2: #00cc66;
+  --green-dim: rgba(0,255,136,0.08); --green-glow: rgba(0,255,136,0.15);
+  --mono: 'JetBrains Mono', monospace;
+  --display: 'Syne', sans-serif;
+}
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: var(--mono); overflow-x: hidden; }
+
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(0,255,136,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,136,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none; z-index: 0;
+}
+
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.03) 2px,
+    rgba(0,0,0,0.03) 4px
+  );
+  pointer-events: none; z-index: 0;
+  animation: scanlines 8s linear infinite;
+}
+@keyframes scanlines { from { background-position: 0 0; } to { background-position: 0 40px; } }
+
+/* PROGRESS BAR */
+.progress-bar {
+  position: fixed; top: 0; left: 0; height: 2px;
+  background: linear-gradient(90deg, var(--green), var(--green2));
+  z-index: 1000; width: 0%; transition: width 0.1s linear;
+  box-shadow: 0 0 8px var(--green-glow);
+}
+
+/* NAV */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 48px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(10,10,10,0.92);
+  backdrop-filter: blur(12px);
+  transition: padding 0.3s;
+}
+nav.scrolled { padding: 14px 48px; }
+.nav-logo { font-family: var(--display); font-size: 20px; font-weight: 800; letter-spacing: -0.5px; text-decoration: none; color: var(--text); }
+.nav-logo span { color: var(--green); }
+.nav-links { display: flex; align-items: center; gap: 32px; font-size: 13px; }
+.nav-links a { color: var(--muted); text-decoration: none; transition: color 0.2s; }
+.nav-links a:hover { color: var(--text); }
+.nav-cta { background: var(--green); color: #000; border: none; padding: 9px 20px; font-family: var(--mono); font-size: 13px; font-weight: 700; cursor: pointer; text-decoration: none; transition: all 0.2s; }
+.nav-cta:hover { background: var(--green2); transform: translateY(-1px); box-shadow: 0 4px 20px var(--green-glow); }
+
+.hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 4px; }
+.hamburger span { display: block; width: 22px; height: 2px; background: var(--text); transition: all 0.3s; }
+.hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.hamburger.open span:nth-child(2) { opacity: 0; }
+.hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+.mobile-nav {
+  display: none; position: fixed; top: 65px; left: 0; right: 0; z-index: 99;
+  background: rgba(10,10,10,0.98); backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  flex-direction: column; padding: 24px 48px; gap: 20px;
+  animation: slideDown 0.2s ease;
+}
+.mobile-nav.open { display: flex; }
+.mobile-nav a { color: var(--muted); text-decoration: none; font-size: 14px; transition: color 0.2s; }
+.mobile-nav a:hover { color: var(--text); }
+@keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: none; } }
+
+/* REVEAL */
+.reveal {
+  opacity: 0; transform: translateY(32px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.reveal.visible { opacity: 1; transform: none; }
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+.reveal-delay-4 { transition-delay: 0.4s; }
+.reveal-delay-5 { transition-delay: 0.5s; }
+
+/* HERO */
+.hero {
+  position: relative; z-index: 1;
+  min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 140px 24px 80px; text-align: center;
+}
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  border: 1px solid var(--green); padding: 6px 16px; font-size: 11px; color: var(--green);
+  margin-bottom: 40px; animation: fadeUp 0.6s ease both;
+}
+.hero-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.3;transform:scale(0.8)} }
+
+.hero h1 {
+  font-family: var(--display); font-size: clamp(48px, 8vw, 96px); font-weight: 800;
+  line-height: 0.95; letter-spacing: -3px; margin-bottom: 32px;
+  animation: fadeUp 0.6s 0.1s ease both;
+  animation: glitch 6s infinite, fadeUp 0.6s 0.1s ease both;
+}
+.hero h1 .accent { color: var(--green); }
+
+@keyframes glitch {
+  0%, 84%, 100% { transform: none; filter: none; }
+  85% { transform: translate(-2px, 0); filter: drop-shadow(2px 0 #ff00ff44); }
+  86% { transform: translate(2px, 0); filter: drop-shadow(-2px 0 #00ffff44); }
+  87% { transform: none; filter: none; }
+  88% { transform: translate(1px, -1px); filter: drop-shadow(-1px 0 #ff00ff33); }
+  89% { transform: none; filter: none; }
+  0% { animation-timing-function: step-end; }
+}
+
+.hero p { font-size: 16px; color: var(--muted); max-width: 480px; line-height: 1.7; margin-bottom: 48px; animation: fadeUp 0.6s 0.2s ease both; }
+.hero-cmd {
+  display: flex; align-items: center; background: var(--bg2);
+  border: 1px solid var(--border2); margin-bottom: 48px;
+  animation: fadeUp 0.6s 0.3s ease both; overflow: hidden;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.hero-cmd:hover { border-color: var(--green); box-shadow: 0 0 20px var(--green-dim); }
+.hero-cmd-prefix { padding: 14px 16px; color: var(--green); font-size: 14px; border-right: 1px solid var(--border2); background: var(--green-dim); }
+.hero-cmd-text { padding: 14px 20px; font-size: 14px; color: var(--text); flex: 1; }
+.hero-cmd-copy {
+  padding: 14px 16px; border: none; background: transparent; color: var(--muted);
+  cursor: pointer; font-size: 11px; font-family: var(--mono); border-left: 1px solid var(--border2); transition: all 0.2s;
+}
+.hero-cmd-copy:hover { color: var(--green); background: var(--green-dim); }
+.hero-btns { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; animation: fadeUp 0.6s 0.4s ease both; }
+.btn-primary { background: var(--green); color: #000; border: none; padding: 14px 32px; font-family: var(--mono); font-size: 14px; font-weight: 700; cursor: pointer; text-decoration: none; transition: all 0.2s; display: inline-block; }
+.btn-primary:hover { background: var(--green2); transform: translateY(-2px); box-shadow: 0 8px 30px var(--green-glow); }
+.btn-secondary { background: transparent; color: var(--text); border: 1px solid var(--border2); padding: 14px 32px; font-family: var(--mono); font-size: 14px; cursor: pointer; text-decoration: none; transition: all 0.2s; display: inline-block; }
+.btn-secondary:hover { border-color: var(--green); color: var(--green); }
+
+.hero-stats {
+  display: flex; gap: 48px; flex-wrap: wrap; justify-content: center;
+  margin-top: 80px; padding-top: 48px; border-top: 1px solid var(--border);
+  animation: fadeUp 0.6s 0.5s ease both;
+}
+.stat { text-align: center; }
+.stat-num { font-family: var(--display); font-size: 32px; font-weight: 800; color: var(--green); }
+.stat-label { font-size: 11px; color: var(--muted); margin-top: 4px; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+
+/* TERMINAL */
+.terminal-section { position: relative; z-index: 1; padding: 80px 24px; max-width: 800px; margin: 0 auto; }
+.terminal { background: #0d0d0d; border: 1px solid var(--border2); overflow: hidden; transition: border-color 0.3s, box-shadow 0.3s; }
+.terminal:hover { border-color: rgba(0,255,136,0.3); box-shadow: 0 0 40px rgba(0,255,136,0.05); }
+.terminal-bar { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--border); background: var(--bg2); }
+.t-dot { width: 10px; height: 10px; border-radius: 50%; }
+.t-dot:nth-child(1){background:#ff5f57} .t-dot:nth-child(2){background:#febc2e} .t-dot:nth-child(3){background:#28c840}
+.t-title { font-size: 11px; color: var(--muted); margin: 0 auto; }
+.terminal-body { padding: 24px; font-size: 13px; line-height: 2.1; min-height: 380px; }
+.t-line { display: flex; gap: 12px; }
+.t-prompt { color: var(--green); }
+.t-cmd { color: #85B7EB; }
+.t-out { color: var(--muted); padding-left: 24px; }
+.t-success { color: var(--green); padding-left: 24px; }
+.t-warn { color: #febc2e; padding-left: 24px; }
+.t-cursor { display: inline-block; width: 8px; height: 14px; background: var(--green); animation: blink 1s infinite; vertical-align: middle; margin-left: 4px; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+/* SECTIONS */
+.section { position: relative; z-index: 1; padding: 80px 24px; max-width: 1100px; margin: 0 auto; }
+.section-label { font-size: 11px; color: var(--green); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 16px; }
+.section-title { font-family: var(--display); font-size: clamp(32px, 5vw, 52px); font-weight: 800; letter-spacing: -2px; margin-bottom: 64px; line-height: 1; }
+
+/* FEATURES */
+.features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); }
+.feature { background: var(--bg); padding: 32px; transition: background 0.2s; position: relative; overflow: hidden; }
+.feature:hover { background: var(--bg2); }
+.feature::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--green); transform: scaleX(0); transition: transform 0.3s; transform-origin: left; }
+.feature:hover::before { transform: scaleX(1); }
+.feature::after { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at top left, var(--green-dim), transparent 60%); opacity: 0; transition: opacity 0.3s; }
+.feature:hover::after { opacity: 1; }
+.feature > * { position: relative; z-index: 1; }
+.feature-icon { font-size: 24px; margin-bottom: 16px; }
+.feature h3 { font-family: var(--display); font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+.feature p { font-size: 13px; color: var(--muted); line-height: 1.7; }
+.feature-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; }
+.tag { font-size: 10px; padding: 3px 8px; border: 1px solid var(--border2); color: var(--muted); transition: all 0.2s; }
+.tag:hover { border-color: var(--green); color: var(--green); }
+
+/* COMPARISON */
+.comparison-section { position: relative; z-index: 1; padding: 80px 24px; max-width: 900px; margin: 0 auto; border-top: 1px solid var(--border); }
+.comparison-table { width: 100%; border-collapse: collapse; border: 1px solid var(--border); }
+.comparison-table th { padding: 16px 24px; text-align: left; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; background: var(--bg2); border-bottom: 1px solid var(--border); }
+.comparison-table th:nth-child(2) { color: var(--muted); }
+.comparison-table th:nth-child(3) { color: var(--green); }
+.comparison-table td { padding: 14px 24px; font-size: 13px; border-bottom: 1px solid var(--border); }
+.comparison-table tr:last-child td { border-bottom: none; font-weight: 700; font-family: var(--display); }
+.comparison-table td:first-child { color: var(--muted); }
+.comparison-table td:nth-child(2) { color: #ff6b6b; }
+.comparison-table td:nth-child(3) { color: var(--green); }
+.comparison-table tr:hover td { background: var(--bg2); }
+.comparison-table tr:last-child td { background: var(--bg3); font-size: 15px; }
+
+/* STEPS */
+.steps-section { position: relative; z-index: 1; padding: 80px 24px; max-width: 800px; margin: 0 auto; border-top: 1px solid var(--border); }
+.step { display: flex; gap: 32px; padding: 32px 0; border-bottom: 1px solid var(--border); }
+.step:last-child { border-bottom: none; }
+.step-num { font-family: var(--display); font-size: 48px; font-weight: 800; color: var(--border2); min-width: 64px; line-height: 1; transition: color 0.3s; }
+.step:hover .step-num { color: var(--green); }
+.step-content h3 { font-family: var(--display); font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+.step-content p { font-size: 13px; color: var(--muted); line-height: 1.7; }
+.step-code { margin-top: 12px; background: var(--bg2); border: 1px solid var(--border); padding: 10px 16px; font-size: 12px; color: var(--green); }
+
+/* STACK */
+.stack-section { position: relative; z-index: 1; padding: 80px 24px; max-width: 1100px; margin: 0 auto; border-top: 1px solid var(--border); }
+.stack-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); margin-top: 48px; }
+.stack-item { background: var(--bg); padding: 24px; text-align: center; transition: background 0.2s, transform 0.2s; cursor: default; }
+.stack-item:hover { background: var(--bg2); transform: translateY(-2px); }
+.stack-icon { font-size: 20px; margin-bottom: 8px; }
+.stack-name { font-family: var(--display); font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.stack-role { font-size: 11px; color: var(--muted); }
+
+/* TESTIMONIALS */
+.testimonials-section { position: relative; z-index: 1; padding: 80px 24px; max-width: 1100px; margin: 0 auto; border-top: 1px solid var(--border); }
+.testimonials-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); }
+.testimonial { background: var(--bg); padding: 32px; transition: background 0.2s; position: relative; }
+.testimonial:hover { background: var(--bg2); }
+.testimonial::before { content: '"'; position: absolute; top: 16px; right: 24px; font-family: var(--display); font-size: 64px; color: var(--border2); line-height: 1; }
+.testimonial-text { font-size: 14px; line-height: 1.8; color: var(--text); margin-bottom: 24px; font-style: italic; }
+.testimonial-author { display: flex; align-items: center; gap: 12px; }
+.testimonial-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--bg3); border: 1px solid var(--border2); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; font-family: var(--display); color: var(--green); flex-shrink: 0; }
+.testimonial-name { font-size: 13px; font-weight: 700; }
+.testimonial-role { font-size: 11px; color: var(--muted); }
+
+/* FAQ */
+.faq-section { position: relative; z-index: 1; padding: 80px 24px; max-width: 800px; margin: 0 auto; border-top: 1px solid var(--border); }
+.faq-item { border-bottom: 1px solid var(--border); }
+.faq-item:last-child { border-bottom: none; }
+.faq-question {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 24px 0; cursor: pointer; font-size: 14px; font-weight: 700;
+  font-family: var(--display); transition: color 0.2s; user-select: none;
+}
+.faq-question:hover { color: var(--green); }
+.faq-icon { font-size: 18px; color: var(--green); transition: transform 0.3s; flex-shrink: 0; margin-left: 16px; }
+.faq-item.open .faq-icon { transform: rotate(45deg); }
+.faq-answer {
+  overflow: hidden; max-height: 0; transition: max-height 0.4s ease, padding 0.3s ease;
+  font-size: 13px; color: var(--muted); line-height: 1.8;
+}
+.faq-item.open .faq-answer { max-height: 400px; padding-bottom: 24px; }
+
+/* CTA */
+.cta-section { position: relative; z-index: 1; padding: 120px 24px; text-align: center; border-top: 1px solid var(--border); overflow: hidden; }
+.cta-section::before {
+  content: '';
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 600px; height: 600px;
+  background: radial-gradient(ellipse, rgba(0,255,136,0.04), transparent 70%);
+  pointer-events: none;
+}
+.cta-section h2 { font-family: var(--display); font-size: clamp(36px, 6vw, 72px); font-weight: 800; letter-spacing: -2px; line-height: 1; margin-bottom: 24px; }
+.cta-section p { font-size: 15px; color: var(--muted); margin-bottom: 48px; }
+
+/* FOOTER */
+footer { position: relative; z-index: 1; padding: 32px 48px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--muted); flex-wrap: wrap; gap: 16px; }
+.footer-logo { font-family: var(--display); font-weight: 800; font-size: 16px; color: var(--text); }
+.footer-logo span { color: var(--green); }
+.footer-links { display: flex; gap: 24px; }
+.footer-links a { color: var(--muted); text-decoration: none; transition: color 0.2s; }
+.footer-links a:hover { color: var(--green); }
+
+/* PRO */
+:root { --gold: #f5c842; --gold-dim: rgba(245,200,66,0.08); --gold-glow: rgba(245,200,66,0.15); }
+.pro-badge { display: inline-flex; align-items: center; gap: 12px; background: var(--gold-dim); border: 1px solid var(--gold); padding: 10px 20px; font-size: 13px; color: var(--gold); margin-bottom: 48px; }
+.pro-badge strong { font-weight: 800; font-family: var(--display); }
+.pro-feature::before { background: var(--gold) !important; transform: scaleX(1) !important; }
+.pro-feature:hover::after { background: radial-gradient(ellipse at top left, var(--gold-dim), transparent 60%) !important; }
+.pro-tag { border-color: rgba(245,200,66,0.3) !important; color: rgba(245,200,66,0.6) !important; }
+.pro-tag:hover { border-color: var(--gold) !important; color: var(--gold) !important; }
+
+/* PRICING */
+.pricing-section { position: relative; z-index: 1; padding: 80px 24px; max-width: 900px; margin: 0 auto; border-top: 1px solid var(--border); }
+.pricing-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); border: 1px solid var(--border); margin-top: 48px; }
+.pricing-card { background: var(--bg); padding: 40px; }
+.pricing-card.pro-card { background: var(--bg2); position: relative; overflow: hidden; }
+.pricing-card.pro-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--gold), var(--green)); }
+.pricing-tier { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
+.pricing-price { font-family: var(--display); font-size: 52px; font-weight: 800; letter-spacing: -2px; line-height: 1; margin-bottom: 8px; }
+.pricing-price.free-price { color: var(--text); }
+.pricing-price.pro-price { color: var(--gold); }
+.pricing-sub { font-size: 12px; color: var(--muted); margin-bottom: 32px; }
+.pricing-features { list-style: none; display: flex; flex-direction: column; gap: 12px; margin-bottom: 32px; }
+.pricing-features li { font-size: 13px; color: var(--muted); display: flex; align-items: flex-start; gap: 10px; line-height: 1.5; }
+.pricing-features li::before { content: '✓'; color: var(--green); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+.pricing-features li.pro-item { color: var(--text); }
+.pricing-features li.pro-item::before { color: var(--gold); }
+.pricing-cta-free { display: block; text-align: center; padding: 12px; border: 1px solid var(--border2); color: var(--muted); text-decoration: none; font-size: 13px; font-family: var(--mono); transition: all 0.2s; }
+.pricing-cta-free:hover { border-color: var(--green); color: var(--green); }
+.pricing-cta-pro { display: block; text-align: center; padding: 12px; background: var(--gold); color: #000; text-decoration: none; font-size: 13px; font-weight: 700; font-family: var(--mono); transition: all 0.2s; }
+.pricing-cta-pro:hover { background: #e8b830; transform: translateY(-1px); box-shadow: 0 4px 20px var(--gold-glow); }
+
+/* MOBILE */
+@media (max-width: 768px) {
+  nav { padding: 16px 24px; }
+  nav.scrolled { padding: 12px 24px; }
+  .nav-links, .nav-cta { display: none; }
+  .hamburger { display: flex; }
+  .mobile-nav { top: 57px; padding: 24px; }
+
+  .hero { padding: 120px 20px 60px; }
+  .hero h1 { letter-spacing: -2px; }
+  .hero-stats { gap: 24px; }
+  .stat-num { font-size: 24px; }
+
+  .section, .comparison-section, .steps-section, .stack-section,
+  .testimonials-section, .faq-section { padding: 60px 20px; }
+  .section-title { margin-bottom: 40px; }
+
+  .step { flex-direction: column; gap: 16px; }
+  .step-num { font-size: 32px; min-width: auto; }
+
+  .pricing-grid { grid-template-columns: 1fr; }
+  footer { padding: 24px; flex-direction: column; align-items: flex-start; gap: 12px; }
+
+  .comparison-table th:nth-child(1),
+  .comparison-table td:nth-child(1) { font-size: 11px; padding: 10px 12px; }
+  .comparison-table th, .comparison-table td { padding: 10px 14px; font-size: 12px; }
+}
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progress"></div>
+
+<nav id="nav">
+  <a href="#" class="nav-logo">⚡ Nexus<span>Kit</span></a>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#compare">Compare</a>
+    <a href="#how">How it works</a>
+    <a href="#stack">Stack</a>
+    <a href="#pro" style="color:var(--gold)">Pro ⚡</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#faq">FAQ</a>
+    <a href="https://github.com/mcKrash/NexusKit" target="_blank">GitHub</a>
+  </div>
+  <a href="https://www.npmjs.com/package/nexuskit-cli" target="_blank" class="nav-cta">Get started →</a>
+  <div class="hamburger" id="hamburger" onclick="toggleNav()">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+
+<div class="mobile-nav" id="mobileNav">
+  <a href="#features" onclick="closeNav()">Features</a>
+  <a href="#compare" onclick="closeNav()">Compare</a>
+  <a href="#how" onclick="closeNav()">How it works</a>
+  <a href="#stack" onclick="closeNav()">Stack</a>
+  <a href="#pro" onclick="closeNav()" style="color:var(--gold)">Pro ⚡</a>
+  <a href="#pricing" onclick="closeNav()">Pricing</a>
+  <a href="#faq" onclick="closeNav()">FAQ</a>
+  <a href="https://github.com/mcKrash/NexusKit" target="_blank" onclick="closeNav()">GitHub ↗</a>
+  <a href="https://www.npmjs.com/package/nexuskit-cli" target="_blank" onclick="closeNav()" style="color:var(--green);font-weight:700;">Install now →</a>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">v2.0.0 — Pro is here</div>
+  <h1>Ship your SaaS<br><span class="accent">in minutes.</span></h1>
+  <p>Stop wasting weeks on boilerplate. NexusKit scaffolds a complete, production-ready Next.js SaaS with one command — auth, payments, DB, email, admin, CI/CD all wired up.</p>
+  <div class="hero-cmd">
+    <span class="hero-cmd-prefix">$</span>
+    <span class="hero-cmd-text">npx nexuskit-cli my-app</span>
+    <button class="hero-cmd-copy" onclick="copyCmd(this)">copy</button>
+  </div>
+  <div class="hero-btns">
+    <a href="https://www.npmjs.com/package/nexuskit-cli" target="_blank" class="btn-primary">Install now</a>
+    <a href="https://github.com/mcKrash/NexusKit" target="_blank" class="btn-secondary">⭐ Star on GitHub</a>
+  </div>
+  <div class="hero-stats">
+    <div class="stat">
+      <div class="stat-num" data-target="147" data-suffix="+">0</div>
+      <div class="stat-label">files generated</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">&lt;5min</div>
+      <div class="stat-label">to first run</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">Free</div>
+      <div class="stat-label">free tier · always</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" data-target="7">0</div>
+      <div class="stat-label">integrations included</div>
+    </div>
+  </div>
+</section>
+
+<!-- TERMINAL -->
+<section class="terminal-section reveal">
+  <div class="terminal" id="terminal">
+    <div class="terminal-bar">
+      <div class="t-dot"></div><div class="t-dot"></div><div class="t-dot"></div>
+      <span class="t-title">bash — nexuskit-cli</span>
+    </div>
+    <div class="terminal-body" id="terminalBody">
+      <div class="t-line"><span class="t-prompt">$</span><span class="t-cursor" id="initCursor"></span></div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="section" id="features">
+  <div class="section-label reveal">// what you get</div>
+  <div class="section-title reveal reveal-delay-1">Everything included.<br>Nothing to configure.</div>
+  <div class="features-grid">
+    <div class="feature reveal"><div class="feature-icon">🔐</div><h3>Authentication</h3><p>Full auth with social login, email/password, magic links, session management, and protected routes out of the box.</p><div class="feature-tags"><span class="tag">NextAuth.js</span><span class="tag">Clerk</span><span class="tag">Supabase Auth</span></div></div>
+    <div class="feature reveal reveal-delay-1"><div class="feature-icon">💳</div><h3>Payments</h3><p>Checkout sessions, webhook handlers, subscription management, and a pricing page — all wired and ready.</p><div class="feature-tags"><span class="tag">Stripe</span><span class="tag">Paddle</span><span class="tag">Lemon Squeezy</span></div></div>
+    <div class="feature reveal reveal-delay-2"><div class="feature-icon">🗄️</div><h3>Database</h3><p>Prisma ORM with production-ready schema, migration setup, and seed data. Supports 3 major databases.</p><div class="feature-tags"><span class="tag">PostgreSQL</span><span class="tag">MySQL</span><span class="tag">MongoDB</span></div></div>
+    <div class="feature reveal reveal-delay-3"><div class="feature-icon">📧</div><h3>Email</h3><p>React Email templates for transactional emails — welcome, password reset, receipts — all integrated.</p><div class="feature-tags"><span class="tag">Resend</span><span class="tag">SendGrid</span><span class="tag">Postmark</span></div></div>
+    <div class="feature reveal reveal-delay-4"><div class="feature-icon">🛡️</div><h3>Admin Dashboard</h3><p>Full user management UI, analytics overview, subscription controls — everything an admin needs.</p><div class="feature-tags"><span class="tag">User mgmt</span><span class="tag">Analytics</span><span class="tag">OWASP</span></div></div>
+    <div class="feature reveal reveal-delay-5"><div class="feature-icon">🚢</div><h3>Deployment</h3><p>GitHub Actions CI/CD pipelines, Docker Compose, and one-click deploy configs for major platforms.</p><div class="feature-tags"><span class="tag">Vercel</span><span class="tag">Fly.io</span><span class="tag">Docker</span></div></div>
+  </div>
+</section>
+
+<!-- PRO FEATURES -->
+<section class="section" id="pro" style="border-top: 1px solid var(--border);">
+  <div class="section-label reveal">// nexuskit pro</div>
+  <div class="section-title reveal reveal-delay-1">Scale without<br><span style="color:var(--gold)">limits.</span></div>
+  <div class="pro-badge reveal reveal-delay-2">⚡ One-time payment &nbsp;·&nbsp; No subscription &nbsp;·&nbsp; All future updates included &nbsp;—&nbsp; <strong>$49</strong></div>
+  <div class="features-grid">
+    <div class="feature pro-feature reveal"><div class="feature-icon">🏢</div><h3>Multi-Tenancy</h3><p>Subdomain routing, per-tenant isolation, and organization-scoped data. Build a true SaaS with multiple customer environments out of the box.</p><div class="feature-tags"><span class="tag pro-tag">Subdomain routing</span><span class="tag pro-tag">Tenant isolation</span><span class="tag pro-tag">Edge middleware</span></div></div>
+    <div class="feature pro-feature reveal reveal-delay-1"><div class="feature-icon">👥</div><h3>Teams & Roles</h3><p>Organizations, email invitations, and full RBAC — Owner, Admin, Member. Let your users collaborate without you building the auth layer.</p><div class="feature-tags"><span class="tag pro-tag">RBAC</span><span class="tag pro-tag">Invitations</span><span class="tag pro-tag">Organizations</span></div></div>
+    <div class="feature pro-feature reveal reveal-delay-2"><div class="feature-icon">📊</div><h3>Advanced Billing</h3><p>Usage-based metering, seat management, and Stripe free trials — all wired up. Track what users consume and charge accordingly.</p><div class="feature-tags"><span class="tag pro-tag">Usage metering</span><span class="tag pro-tag">Seat mgmt</span><span class="tag pro-tag">Free trials</span></div></div>
+    <div class="feature pro-feature reveal reveal-delay-3"><div class="feature-icon">🤖</div><h3>AI Starter Layer</h3><p>OpenAI + Anthropic clients, streaming chat API, per-user rate limiting, token tracking, and cost analytics. Ship AI features in hours, not weeks.</p><div class="feature-tags"><span class="tag pro-tag">GPT-4o</span><span class="tag pro-tag">Claude Sonnet</span><span class="tag pro-tag">Streaming</span></div></div>
+    <div class="feature pro-feature reveal reveal-delay-4"><div class="feature-icon">📈</div><h3>Built-in Analytics</h3><p>MRR, ARR, churn rate, cohort retention, and revenue by plan — a full business metrics dashboard wired directly to your Prisma database.</p><div class="feature-tags"><span class="tag pro-tag">MRR / ARR</span><span class="tag pro-tag">Churn rate</span><span class="tag pro-tag">Cohort data</span></div></div>
+    <div class="feature pro-feature reveal reveal-delay-5"><div class="feature-icon">🎯</div><h3>Onboarding Flows</h3><p>Step-by-step checklists, a full onboarding page, and a floating progress widget. Turn signups into activated users from day one.</p><div class="feature-tags"><span class="tag pro-tag">Checklist widget</span><span class="tag pro-tag">Progress ring</span><span class="tag pro-tag">Auto-dismiss</span></div></div>
+  </div>
+</section>
+
+<!-- COMPARISON -->
+<section class="comparison-section" id="compare">
+  <div class="section-label reveal">// the numbers</div>
+  <div class="section-title reveal reveal-delay-1">3 weeks → 5 minutes.</div>
+  <table class="comparison-table reveal reveal-delay-2">
+    <thead>
+      <tr>
+        <th>Task</th>
+        <th>From Scratch</th>
+        <th>⚡ NexusKit</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Auth setup + social login</td><td>~4 hours</td><td>✓ 0 min</td></tr>
+      <tr><td>Stripe integration + webhooks</td><td>~8 hours</td><td>✓ 0 min</td></tr>
+      <tr><td>Database schema + ORM</td><td>~2 hours</td><td>✓ 0 min</td></tr>
+      <tr><td>Transactional email system</td><td>~3 hours</td><td>✓ 0 min</td></tr>
+      <tr><td>Admin dashboard UI</td><td>~2 weeks</td><td>✓ 0 min</td></tr>
+      <tr><td>CI/CD pipeline + Docker</td><td>~4 hours</td><td>✓ 0 min</td></tr>
+      <tr><td>Security middleware (OWASP)</td><td>~6 hours</td><td>✓ 0 min</td></tr>
+      <tr><td><span style="color:var(--text)">Total time to ship</span></td><td>3+ weeks</td><td>5 minutes</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="steps-section" id="how">
+  <div class="section-label reveal">// how it works</div>
+  <div class="section-title reveal reveal-delay-1">Three steps.<br>That's it.</div>
+  <div>
+    <div class="step reveal">
+      <div class="step-num">01</div>
+      <div class="step-content">
+        <h3>Run the command</h3>
+        <p>One command launches the interactive wizard. No config files to edit, no docs to read, no dependencies to figure out.</p>
+        <div class="step-code">$ npx nexuskit-cli my-app</div>
+      </div>
+    </div>
+    <div class="step reveal reveal-delay-1">
+      <div class="step-num">02</div>
+      <div class="step-content">
+        <h3>Answer a few questions</h3>
+        <p>Pick your auth provider, database, payment system, email service, and deployment target. NexusKit generates exactly what you choose — nothing more.</p>
+        <div class="step-code">? Auth: NextAuth  ? DB: PostgreSQL  ? Payments: Stripe</div>
+      </div>
+    </div>
+    <div class="step reveal reveal-delay-2">
+      <div class="step-num">03</div>
+      <div class="step-content">
+        <h3>Add your API keys & ship</h3>
+        <p>Fill in your <code style="color:var(--green)">.env</code> file with your API keys, run <code style="color:var(--green)">npm run dev</code>, and you're live. Start shipping features on day one.</p>
+        <div class="step-code">$ cd my-app && npm run dev → localhost:3000 ✓</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STACK -->
+<section class="stack-section" id="stack">
+  <div class="section-label reveal">// tech stack</div>
+  <div class="section-title reveal reveal-delay-1">Built on the best.</div>
+  <div class="stack-grid">
+    <div class="stack-item reveal"><div class="stack-icon">▲</div><div class="stack-name">Next.js 14</div><div class="stack-role">Framework</div></div>
+    <div class="stack-item reveal reveal-delay-1"><div class="stack-icon">TS</div><div class="stack-name">TypeScript</div><div class="stack-role">Language</div></div>
+    <div class="stack-item reveal reveal-delay-2"><div class="stack-icon">◆</div><div class="stack-name">Prisma</div><div class="stack-role">ORM</div></div>
+    <div class="stack-item reveal reveal-delay-3"><div class="stack-icon">〜</div><div class="stack-name">Tailwind</div><div class="stack-role">Styling</div></div>
+    <div class="stack-item reveal reveal-delay-4"><div class="stack-icon">🔑</div><div class="stack-name">NextAuth</div><div class="stack-role">Auth</div></div>
+    <div class="stack-item reveal reveal-delay-5"><div class="stack-icon">$</div><div class="stack-name">Stripe</div><div class="stack-role">Payments</div></div>
+    <div class="stack-item reveal"><div class="stack-icon">@</div><div class="stack-name">Resend</div><div class="stack-role">Email</div></div>
+    <div class="stack-item reveal reveal-delay-1"><div class="stack-icon">🐳</div><div class="stack-name">Docker</div><div class="stack-role">Deployment</div></div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing-section" id="pricing">
+  <div class="section-label reveal">// pricing</div>
+  <div class="section-title reveal reveal-delay-1">Simple pricing.<br><span style="color:var(--green)">No surprises.</span></div>
+  <div class="pricing-grid reveal reveal-delay-2">
+    <div class="pricing-card">
+      <div class="pricing-tier">Free</div>
+      <div class="pricing-price free-price">$0</div>
+      <div class="pricing-sub">Forever free · Open source · MIT license</div>
+      <ul class="pricing-features">
+        <li>Full SaaS scaffold — auth, payments, DB, email</li>
+        <li>Admin dashboard & user management</li>
+        <li>Docker + GitHub Actions CI/CD</li>
+        <li>OWASP security middleware</li>
+        <li>Next.js 14 + TypeScript + Tailwind</li>
+        <li>Basic AI streaming chat route</li>
+      </ul>
+      <a href="https://www.npmjs.com/package/nexuskit-cli" target="_blank" class="pricing-cta-free">npx nexuskit-cli my-app</a>
+    </div>
+    <div class="pricing-card pro-card">
+      <div class="pricing-tier">Pro</div>
+      <div class="pricing-price pro-price">$49</div>
+      <div class="pricing-sub">One-time · All future updates · No subscription ever</div>
+      <ul class="pricing-features">
+        <li class="pro-item">Everything in Free, plus:</li>
+        <li class="pro-item">Multi-tenancy & subdomain routing</li>
+        <li class="pro-item">Teams, organizations & full RBAC</li>
+        <li class="pro-item">AI layer — GPT-4o + Claude Sonnet streaming</li>
+        <li class="pro-item">Token tracking & per-user rate limiting</li>
+        <li class="pro-item">Usage-based billing & seat management</li>
+        <li class="pro-item">Free trial management via Stripe</li>
+        <li class="pro-item">Analytics — MRR, ARR, churn, cohorts</li>
+        <li class="pro-item">Onboarding flows & checklist widgets</li>
+      </ul>
+      <a href="https://www.npmjs.com/package/nexuskit-cli" target="_blank" class="pricing-cta-pro">Get Pro — $49 →</a>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="testimonials-section">
+  <div class="section-label reveal">// what devs say</div>
+  <div class="section-title reveal reveal-delay-1">Developers love it.</div>
+  <div class="testimonials-grid">
+    <div class="testimonial reveal">
+      <p class="testimonial-text">Saved me at least 3 weeks of boilerplate work. I had auth, Stripe, and an admin dashboard running before the end of the first day. Absolutely wild.</p>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">AK</div>
+        <div><div class="testimonial-name">Alex K.</div><div class="testimonial-role">Indie hacker · Built 2 SaaS products</div></div>
+      </div>
+    </div>
+    <div class="testimonial reveal reveal-delay-1">
+      <p class="testimonial-text">The cleanest scaffold I've ever used. Everything just works — the Prisma schema, the auth routes, the Stripe webhooks. Zero fighting the boilerplate.</p>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">SM</div>
+        <div><div class="testimonial-name">Sofia M.</div><div class="testimonial-role">Full-stack dev · Freelancer</div></div>
+      </div>
+    </div>
+    <div class="testimonial reveal reveal-delay-2">
+      <p class="testimonial-text">I've used it for 3 client projects now. The OWASP middleware and CI/CD pipeline alone are worth it. This is my go-to starting point for every Next.js SaaS.</p>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">JR</div>
+        <div><div class="testimonial-name">James R.</div><div class="testimonial-role">Software engineer · Agency owner</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq-section" id="faq">
+  <div class="section-label reveal">// questions</div>
+  <div class="section-title reveal reveal-delay-1">FAQ</div>
+
+  <div class="faq-item reveal">
+    <div class="faq-question" onclick="toggleFaq(this)">
+      Is NexusKit really free?
+      <span class="faq-icon">+</span>
+    </div>
+    <div class="faq-answer">Yes — 100% free and open source under the MIT license. No hidden costs, no paywalls, no paid tiers. The generated code belongs to you and can be used in commercial projects.</div>
+  </div>
+
+  <div class="faq-item reveal reveal-delay-1">
+    <div class="faq-question" onclick="toggleFaq(this)">
+      Can I use the generated code in production?
+      <span class="faq-icon">+</span>
+    </div>
+    <div class="faq-answer">Absolutely. NexusKit is built specifically for production use. It includes OWASP-compliant middleware, rate limiting, CORS protection, input validation, and CI/CD pipelines. The generated stack is the same tech used by serious production SaaS products.</div>
+  </div>
+
+  <div class="faq-item reveal reveal-delay-2">
+    <div class="faq-question" onclick="toggleFaq(this)">
+      What if I need a stack option not listed?
+      <span class="faq-icon">+</span>
+    </div>
+    <div class="faq-answer">NexusKit covers the most common production-ready options. The generated code is plain TypeScript — nothing proprietary — so adding or swapping a library is as straightforward as in any Next.js project. Contributions for new providers are welcome on GitHub.</div>
+  </div>
+
+  <div class="faq-item reveal reveal-delay-3">
+    <div class="faq-question" onclick="toggleFaq(this)">
+      Does it work on Windows, Mac, and Linux?
+      <span class="faq-icon">+</span>
+    </div>
+    <div class="faq-answer">Yes. NexusKit requires Node.js >= 18.0.0 and works on all major platforms. The CLI is built with cross-platform compatibility in mind. If you hit a platform-specific issue, please open a GitHub issue.</div>
+  </div>
+
+  <div class="faq-item reveal reveal-delay-4">
+    <div class="faq-question" onclick="toggleFaq(this)">
+      How do I update NexusKit after it's installed?
+      <span class="faq-icon">+</span>
+    </div>
+    <div class="faq-answer">If you use <code style="color:var(--green)">npx nexuskit-cli</code> you always get the latest version automatically. If installed globally, run <code style="color:var(--green)">npm update -g nexuskit-cli</code>. The generated project is yours — updates to the CLI don't affect already-generated apps.</div>
+  </div>
+
+  <div class="faq-item reveal reveal-delay-5">
+    <div class="faq-question" onclick="toggleFaq(this)">
+      Does NexusKit generate tests?
+      <span class="faq-icon">+</span>
+    </div>
+    <div class="faq-answer">The generated project includes a testing setup with configuration ready to go. You write the tests for your business logic — NexusKit gives you the scaffolding so you're not starting from zero.</div>
+  </div>
+
+  <div class="faq-item reveal reveal-delay-1">
+    <div class="faq-question" onclick="toggleFaq(this)">
+      What's included in NexusKit Pro?
+      <span class="faq-icon">+</span>
+    </div>
+    <div class="faq-answer">Pro adds six production-ready feature modules on top of the free tier: Multi-tenancy with subdomain routing, Teams & RBAC, Advanced Billing (usage metering + seat management + Stripe free trials), an AI Starter Layer (GPT-4o + Claude Sonnet, streaming, token tracking, cost analytics), built-in Analytics (MRR, ARR, churn, cohorts), and Onboarding Flows (checklists + progress widgets). All of it is scaffolded code you own — no runtime dependency on NexusKit.</div>
+  </div>
+
+  <div class="faq-item reveal reveal-delay-2">
+    <div class="faq-question" onclick="toggleFaq(this)">
+      Is Pro a subscription or one-time?
+      <span class="faq-icon">+</span>
+    </div>
+    <div class="faq-answer">One-time payment of $49. No subscription, no renewal, no monthly fee. You pay once and get all future Pro updates. NexusKit runs no servers and has no infrastructure costs — you bring your own API keys, so there is nothing to charge you for month after month.</div>
+  </div>
+
+  <div class="faq-item reveal reveal-delay-3">
+    <div class="faq-question" onclick="toggleFaq(this)">
+      Do I need Pro to use the AI features?
+      <span class="faq-icon">+</span>
+    </div>
+    <div class="faq-answer">The free tier includes a basic AI streaming chat route — enough to prototype. Pro upgrades this to a full AI layer: multi-model support (GPT-4o, GPT-3.5, Claude Sonnet, Claude Haiku), per-user rate limiting with plan awareness, token usage stored in your database, cost analytics per model, and a polished chat UI with model selector, usage display, and rate-limit warnings.</div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <h2 class="reveal">Ready to ship<br><span style="color:var(--green)">faster?</span></h2>
+  <p class="reveal reveal-delay-1">Join developers who stopped wasting time on boilerplate.</p>
+  <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;" class="reveal reveal-delay-2">
+    <a href="https://www.npmjs.com/package/nexuskit-cli" target="_blank" class="btn-primary">npx nexuskit-cli my-app</a>
+    <a href="https://github.com/mcKrash/NexusKit" target="_blank" class="btn-secondary">⭐ Star on GitHub</a>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">⚡ Nexus<span>Kit</span></div>
+  <div>Built with ❤️ by <a href="https://github.com/mcKrash" target="_blank" style="color:var(--green);text-decoration:none;">mcKrash</a></div>
+  <div class="footer-links">
+    <a href="https://github.com/mcKrash/NexusKit" target="_blank">GitHub</a>
+    <a href="https://www.npmjs.com/package/nexuskit-cli" target="_blank">NPM</a>
+    <a href="https://github.com/mcKrash/NexusKit/blob/main/LICENSE" target="_blank">MIT License</a>
+  </div>
+</footer>
+
+<script>
+// ---- PROGRESS BAR ----
+const progressBar = document.getElementById('progress');
+window.addEventListener('scroll', () => {
+  const pct = window.scrollY / (document.body.scrollHeight - window.innerHeight) * 100;
+  progressBar.style.width = Math.min(pct, 100) + '%';
+});
+
+// ---- NAV SCROLL ----
+const navEl = document.getElementById('nav');
+window.addEventListener('scroll', () => {
+  navEl.classList.toggle('scrolled', window.scrollY > 50);
+});
+
+// ---- MOBILE NAV ----
+const hamburger = document.getElementById('hamburger');
+const mobileNav = document.getElementById('mobileNav');
+function toggleNav() {
+  hamburger.classList.toggle('open');
+  mobileNav.classList.toggle('open');
+}
+function closeNav() {
+  hamburger.classList.remove('open');
+  mobileNav.classList.remove('open');
+}
+
+// ---- REVEAL ON SCROLL ----
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); revealObserver.unobserve(e.target); } });
+}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+// ---- COUNTER ANIMATION ----
+function animateCounter(el) {
+  const target = parseInt(el.dataset.target);
+  const suffix = el.dataset.suffix || '';
+  const duration = 1200;
+  const start = performance.now();
+  function update(now) {
+    const t = Math.min((now - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - t, 3);
+    el.textContent = Math.floor(ease * target) + suffix;
+    if (t < 1) requestAnimationFrame(update);
+  }
+  requestAnimationFrame(update);
+}
+const counterObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting && e.target.dataset.target) {
+      animateCounter(e.target);
+      counterObserver.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.5 });
+document.querySelectorAll('[data-target]').forEach(el => counterObserver.observe(el));
+
+// ---- TERMINAL TYPEWRITER ----
+const terminalLines = [
+  { cls: 'cmd', text: ' npx nexuskit-cli my-startup' },
+  { cls: 'out', text: 'Answer a few questions to configure your SaaS:' },
+  { cls: 'warn', text: '? Project name: my-startup' },
+  { cls: 'warn', text: '? Framework: Next.js 14 (App Router)' },
+  { cls: 'warn', text: '? Database: PostgreSQL (Prisma)' },
+  { cls: 'warn', text: '? Auth provider: NextAuth.js' },
+  { cls: 'warn', text: '? Payment provider: Stripe' },
+  { cls: 'warn', text: '? Email service: Resend' },
+  { cls: 'warn', text: '? Admin dashboard: Yes' },
+  { cls: 'warn', text: '? Enable Pro features: Yes' },
+  { cls: 'warn', text: '? AI layer: Pro (GPT-4o + Claude Sonnet)' },
+  { cls: 'warn', text: '? Teams & multi-tenancy: Yes' },
+  { cls: 'warn', text: '? Analytics & onboarding: Yes' },
+  { cls: 'warn', text: '? Deployment: Vercel + Docker' },
+  { cls: 'success', text: '✓ Project directory created' },
+  { cls: 'success', text: '✓ 200+ files generated' },
+  { cls: 'success', text: '✓ Pro modules scaffolded' },
+  { cls: 'success', text: '✓ Dependencies installed' },
+  { cls: 'success', text: '✓ Prisma client generated' },
+  { cls: 'success', text: '✓ Git repository initialized' },
+  { cls: 'success', text: '✨ Your Pro SaaS is ready to ship!' },
+  { cls: 'out', text: '→ cd my-startup && npm run dev' },
+];
+
+let terminalStarted = false;
+
+function buildTerminal() {
+  if (terminalStarted) return;
+  terminalStarted = true;
+  const body = document.getElementById('terminalBody');
+  body.innerHTML = '';
+  let i = 0;
+  function appendLine() {
+    if (i >= terminalLines.length) {
+      body.innerHTML += '<div class="t-line"><span class="t-prompt">$</span><span class="t-cursor"></span></div>';
+      return;
+    }
+    const line = terminalLines[i++];
+    const div = document.createElement('div');
+    if (line.cls === 'cmd') {
+      div.className = 't-line';
+      div.innerHTML = `<span class="t-prompt">$</span><span class="t-${line.cls}">${line.text}</span>`;
+    } else {
+      div.className = `t-${line.cls}`;
+      div.textContent = line.text;
+    }
+    body.appendChild(div);
+    body.scrollTop = body.scrollHeight;
+    const delay = line.cls === 'success' ? 120 : line.cls === 'warn' ? 150 : line.cls === 'cmd' ? 400 : 80;
+    setTimeout(appendLine, delay);
+  }
+  setTimeout(appendLine, 300);
+}
+
+const terminalObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) { buildTerminal(); terminalObserver.unobserve(e.target); } });
+}, { threshold: 0.3 });
+const terminalEl = document.getElementById('terminal');
+if (terminalEl) terminalObserver.observe(terminalEl);
+
+// ---- FAQ ACCORDION ----
+function toggleFaq(questionEl) {
+  const item = questionEl.closest('.faq-item');
+  const isOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item.open').forEach(el => el.classList.remove('open'));
+  if (!isOpen) item.classList.add('open');
+}
+
+// ---- COPY BUTTON ----
+function copyCmd(btn) {
+  navigator.clipboard.writeText('npx nexuskit-cli my-app').then(() => {
+    btn.textContent = 'copied!';
+    btn.style.color = 'var(--green)';
+    setTimeout(() => { btn.textContent = 'copy'; btn.style.color = ''; }, 2000);
+  });
+}
+</script>
+</body>
+</html>
