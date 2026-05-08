@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>TikTok Auth — NightTales</title>
+<style>body{font-family:Arial,sans-serif;max-width:600px;margin:80px auto;padding:0 20px;text-align:center}code{background:#f4f4f4;padding:12px 20px;display:block;margin:20px 0;word-break:break-all;border-radius:6px;font-size:14px}</style>
+</head>
+<body>
+<h2>Authorization successful</h2>
+<p>Copy the code below and paste it into your terminal:</p>
+<code id="code"></code>
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get('code');
+  const error = params.get('error');
+  if (error) {
+    document.querySelector('h2').textContent = 'Authorization failed';
+    document.getElementById('code').textContent = error;
+  } else if (code) {
+    document.getElementById('code').textContent = code;
+  } else {
+    document.getElementById('code').textContent = 'No code found in URL';
+  }
+</script>
+</body>
+</html>
